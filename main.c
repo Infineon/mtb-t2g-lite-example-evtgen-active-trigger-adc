@@ -1,14 +1,14 @@
 /******************************************************************************
 * File Name:   main.c
 *
-* Description: This is the source code for the XMC7000 MCU event generator 
+* Description: This is the source code for the T2G MCU event generator 
 *              (EVTGEN) trigger ADC conversion example for ModusToolbox.
 *
 * Related Document: See README.md
 *
 *
 *******************************************************************************
-* Copyright 2022, Cypress Semiconductor Corporation (an Infineon company) or
+* Copyright 2022-2023, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *
 * This software, including source code, documentation and related
@@ -55,15 +55,21 @@
 
 /* Assign the ADC interrupt number and priority */
 #define ADC_IRQ_NUM             (NvicMux2_IRQn)
-#define ADC_INTR_NUM            (((ADC_IRQ_NUM << 16u) | ADC_CH0_IRQ))
+#define ADC_INTR_NUM            (((ADC_IRQ_NUM << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | ADC_CH0_IRQ))
 #define ADC_INTR_PRIORITY       (7u)
 
 /* Event generator comparator structure number */
+#if defined (CY_IP_M7CPUSS)
 #define EVTGEN_COMP_STRUCT_NUM  (12u)
+#define EVTGEN_COMP_CONFIG      EVTGEN_comp12_config
+#else
+#define EVTGEN_COMP_STRUCT_NUM  (0u)
+#define EVTGEN_COMP_CONFIG      EVTGEN_comp0_config
+#endif
 
 /* Assign the EVTGEN interrupt number and priority */
 #define EVTGEN_IRQ_NUM          (NvicMux3_IRQn)
-#define EVTGEN_INTR_NUM         (((EVTGEN_IRQ_NUM << 16u) | EVTGEN_IRQ))
+#define EVTGEN_INTR_NUM         (((EVTGEN_IRQ_NUM << CY_SYSINT_INTRSRC_MUXIRQ_SHIFT) | EVTGEN_IRQ))
 #define EVTGEN_INTR_PRIORITY    (7u)
 
 /*******************************************************************************
@@ -177,7 +183,7 @@ int main(void)
         CY_ASSERT(0);
     }
     /* Initialize the event generator comparator structure */
-    Cy_EvtGen_InitStruct(EVTGEN_HW, EVTGEN_COMP_STRUCT_NUM, &EVTGEN_comp12_config);
+    Cy_EvtGen_InitStruct(EVTGEN_HW, EVTGEN_COMP_STRUCT_NUM, &EVTGEN_COMP_CONFIG);
 
     for (;;)
     {
@@ -211,7 +217,7 @@ void evtgen_isr (void)
         Cy_EvtGen_ClearStructInterrupt(EVTGEN_HW, EVTGEN_COMP_STRUCT_NUM);
         /* Update active comparator value */
         Cy_EvtGen_UpdateActiveCompValue(EVTGEN_HW, EVTGEN_COMP_STRUCT_NUM, 
-                                        EVTGEN_comp12_config.valueActiveComparator);
+                                        EVTGEN_COMP_CONFIG.valueActiveComparator);
     }
 }
 
